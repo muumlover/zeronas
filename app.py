@@ -19,7 +19,14 @@ from flask import Flask
 from apis.files import file_view
 
 app = Flask(__name__)
-app.add_url_rule('/file_api', 'index', file_view)
+app.add_url_rule('/api/file', 'api_file', file_view)
+
+
+def file_view():
+    return app.send_static_file('file.html')
+
+
+app.add_url_rule('/file', 'file', file_view)
 
 
 # 跨域支持

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="/static/js/vue.js"></script>
+    <script src="/static/js/vue-router.js"></script>
+    <script src="/static/js/axios.js"></script>
+    <script src="/static/js/element-ui.js"></script>
+    <link href="/static/css/element-ui.css" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+    <el-container>
+        <el-header>
+            <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
+                <el-menu-item index="file">文件管理</el-menu-item>
+                <el-submenu index="2">
+                    <template slot="title">我的工作台</template>
+                    <el-menu-item index="2-1">选项1</el-menu-item>
+                    <el-menu-item index="2-2">选项2</el-menu-item>
+                    <el-menu-item index="2-3">选项3</el-menu-item>
+                    <el-submenu index="2-4">
+                        <template slot="title">选项4</template>
+                        <el-menu-item index="2-4-1">选项1</el-menu-item>
+                        <el-menu-item index="2-4-2">选项2</el-menu-item>
+                        <el-menu-item index="2-4-3">选项3</el-menu-item>
+                    </el-submenu>
+                </el-submenu>
+                <el-menu-item index="3" disabled>消息中心</el-menu-item>
+                <el-menu-item index="4"><a href="https://www.ele.me" target="_blank">订单管理</a></el-menu-item>
+            </el-menu>
+        </el-header>
+        <el-main>
+            <router-view></router-view>
+        </el-main>
+        <el-footer>
+
+        </el-footer>
+    </el-container>
+</div>
+<template id="fileView">
+    <div>
+        <el-breadcrumb separator="/">
+            <el-breadcrumb-item v-for="item in pathList" :key="item.name"
+                                :to="{ name: 'file', query: {path: item.path}}">
+                {{ item.name }}
+            </el-breadcrumb-item>
+        </el-breadcrumb>
+        <!--        <el-button @click="backUpLevel()">返回上一级</el-button>-->
+        <!--        <el-button @click="toggleSelection('all')">全选</el-button>-->
+        <!--        <el-button @click="toggleSelection()">全不选</el-button>-->
+        <el-table ref="fileList" :data="fileList" stripe style="width: 100%" @selection-change="handleSelectionChange">
+            <el-table-column type="selection" width="55"></el-table-column>
+            <el-table-column label="文件名">
+                <template slot-scope="scope">
+                    <i class="el-icon-folder-opened" v-if="scope.row.type === 'dir'"></i>
+                    <i class="el-icon-document" v-else></i>
+                    <el-link :underline="false" v-on:click="itemAction(scope.row)">
+                        <span style="margin-left: 10px">{{ scope.row.name }}</span>
+                    </el-link>
+                </template>
+            </el-table-column>
+            <el-table-column prop="size" label="大小"></el-table-column>
+            <el-table-column prop="time" label="修改时间"></el-table-column>
+        </el-table>
+    </div>
+</template>
+<script>
+    const FileView = {
+        template: '#fileView',
+        data() {
+            return {
+                pathList: [],
+                fileList: [],
+                fileSelected: []
+            }
+        },
+        created() {
+            // 组件创建完后获取数据，
+            // 此时 data 已经被 observed 了
+            this.fetchData()
+        },
+        watch: {
+            '$route': 'fetchData'
+        },
+        methods: {
+            backUpLevel() {
+                // router.back();
+                var url = this.$route.query.path.split('/').slice(0, -1).join('/');
+                if (url !== '') router.push({name: 'file', query: {path: url}});
+            },
+            toggleSelection(rows) {
+                if (rows === 'all') {
+                    this.$refs.fileList.toggleAllSelection();
+                } else if (rows) {
+                    rows.forEach(row => {
+                        this.$refs.fileList.toggleRowSelection(row);
+                    });
+                } else {
+                    this.$refs.fileList.clearSelection();
+                }
+            },
+            handleSelectionChange(val) {
+                this.fileSelected = val;
+            },
+            itemAction(item) {
+                switch (item.type) {
+                    case 'dir':
+                        router.push({name: 'file', query: {path: item.path}});
+                        break;
+                    case 'file':
+                        var file_url = "/api/file?path=" + item.path;
+                        window.open(file_url, 'download');
+                    default:
+                        break;
+                }
+            },
+            fetchData: function () {
+                console.log(this.$route.query.path);
+                axios.get('/api/file', {
+                    params: {
+                        path: this.$route.query.path
+                    }
+                }).then((response) => {
+                    switch (response.data.type) {
+                        case 'dir':
+                            this.fileList = response.data.items;
+                            const path_parts = this.$route.query.path.split('/');
+                            if (path_parts.length !== 1)
+                                this.fileList.unshift({
+                                    type: 'dir',
+                                    name: '..',
+                                    path: path_parts.slice(0, -1).join('/'),
+                                    size: '-',
+                                    time: '-'
+                                });
+                            this.pathList = [];
+                            path_parts.forEach((item, index) => {
+                                if (index === 0) item = 'Home';
+                                this.pathList.push({
+                                    name: item,
+                                    path: path_parts.slice(0, index + 1).join('/')
+                                })
+                            });
+                            break;
+                        case 'file':
+                            break;
+                        default:
+                            break;
+                    }
+                }).catch((error) => {
+                    console.log(error);
+                })
+            }
+        }
+    };
+    var router = new VueRouter({
+        mode: 'history',
+        routes: [
+            {
+                path: '/file',
+                name: 'file',
+                component: FileView
+            },
+        ],
+    });
+    var app = new Vue({
+        el: '#app',
+        router,
+        data() {
+            return {
+                activeIndex: this.$route.name
+            };
+        },
+        methods: {
+            handleSelect(key, keyPath) {
+                console.log(key, keyPath);
+                if (this.$route.name !== key)
+                    router.push({name: key});
+
+            }
+        },
+        mounted() {
+        }
+    })
+</script>
+</body>
+</html>
