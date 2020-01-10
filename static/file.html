@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <script src="/static/js/vue.js"></script>
-    <script src="/static/js/vue-router.js"></script>
-    <script src="/static/js/axios.js"></script>
+    <script src="/static/js/vue.min.js"></script>
+    <script src="/static/js/vue-router.min.js"></script>
+    <script src="/static/js/axios.min.js"></script>
     <script src="/static/js/element-ui.js"></script>
     <link href="/static/css/element-ui.css" rel="stylesheet">
+    <link href="/static/css/iconfont/iconfont.css" rel="stylesheet">
 </head>
 <body>
 <div id="app">
@@ -54,7 +55,8 @@
             <el-table-column type="selection" width="55"></el-table-column>
             <el-table-column label="文件名">
                 <template slot-scope="scope">
-                    <i class="el-icon-folder-opened" v-if="scope.row.type === 'dir'"></i>
+<!--                    <i class="el-icon-folder-opened" v-if="scope.row.type === 'dir'"></i>-->
+                    <i class="icon icon-dir" v-if="scope.row.type === 'dir'"></i>
                     <i class="el-icon-document" v-else></i>
                     <el-link :underline="false" v-on:click="itemAction(scope.row)">
                         <span style="margin-left: 10px">{{ scope.row.name }}</span>
