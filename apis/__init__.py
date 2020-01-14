@@ -3,9 +3,9 @@
 
 """
 @Time    : 2020/1/7 15:54
-@Author  : Sam Wang
+@Author  : Skogen
 @Email   : muumlover@live.com
-@Blog    : https://blog.muumlover.com
+@Blog    : https://blog.ronpy.com
 @Project : zeronas
 @FileName: __init__.py
 @Software: PyCharm

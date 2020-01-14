@@ -3,9 +3,9 @@
 
 """
 @Time    : 2020/1/6 11:16
-@Author  : Sam Wang
+@Author  : Skogen
 @Email   : muumlover@live.com
-@Blog    : https://blog.muumlover.com
+@Blog    : https://blog.ronpy.com
 @Project : zeronas
 @FileName: app.py
 @Software: PyCharm
@@ -16,17 +16,17 @@
 
 from flask import Flask
 
-from apis.files import file_view
+from apis.files import handle_file
+from apis.users import handle_user
 
 app = Flask(__name__)
-app.add_url_rule('/api/file', 'api_file', file_view)
+app.add_url_rule('/api/file', 'api_file', handle_file)
+app.add_url_rule('/api/user', 'api_user', handle_user)
 
 
-def file_view():
+@app.errorhandler(404)
+def handle_default(error):
     return app.send_static_file('file.html')
-
-
-app.add_url_rule('/file', 'file', file_view)
 
 
 # 跨域支持

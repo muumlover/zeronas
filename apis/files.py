@@ -3,9 +3,9 @@
 
 """
 @Time    : 2020/1/6 11:16
-@Author  : Sam Wang
+@Author  : Skogen
 @Email   : muumlover@live.com
-@Blog    : https://blog.muumlover.com
+@Blog    : https://blog.ronpy.com
 @Project : zeronas
 @FileName: files
 @Software: PyCharm
@@ -47,7 +47,7 @@ def get_files(base_path, target_path):
     return file_list
 
 
-def file_view():
+def handle_file():
     user = 'test'
     path = request.args.get("path") or ""
     base_path = '/sata/home/' + user + '/'
