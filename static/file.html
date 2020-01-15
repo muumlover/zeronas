@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
+<html lang="en" xmlns:v-slot="http://www.w3.org/1999/XSL/Transform" xmlns:v-on="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
@@ -7,6 +7,8 @@
     <script src="/static/js/vue.min.js"></script>
     <script src="/static/js/vue-router.min.js"></script>
     <script src="/static/js/axios.min.js"></script>
+
+    <script src="/static/js/iconfont.js"></script>
 
     <!--
     <script src="/static/js/element-ui.js"></script>
@@ -19,13 +21,20 @@
     -->
     <link href="/static/css/materialdesignicons.min.css" rel="stylesheet">
     <link href="/static/css/vuetify.min.css" rel="stylesheet">
-    <link href="/static/css/iconfont/iconfont.css" rel="stylesheet">
+    <style type="text/css">
+        .type {
+            width: 1em;
+            height: 1em;
+            vertical-align: -0.15em;
+            fill: currentColor;
+            overflow: hidden;
+        }
+    </style>
 </head>
 <body>
 <v-app id="app">
     <!-- Sizes your content based upon application components -->
     <v-content>
-
         <v-toolbar color="teal" dark>
             <v-toolbar-title>Title</v-toolbar-title>
             <v-divider class="mx-4" inset vertical></v-divider>
@@ -43,15 +52,12 @@
             </v-toolbar-items>
             <v-app-bar-nav-icon></v-app-bar-nav-icon>
         </v-toolbar>
-
         <!-- Provides the application the proper gutter -->
         <v-container fluid>
-
             <!-- If using vue-router -->
             <router-view></router-view>
         </v-container>
     </v-content>
-
 </v-app>
 <template id="app2">
     <el-container>
@@ -73,21 +79,26 @@
     </el-container>
 </template>
 <template id="fileView">
-    <div>
-        <v-breadcrumbs :items="pathList"></v-breadcrumbs>
+    <div class="elevation-3">
+        <v-toolbar dense flat color="grey lighten-5">
+            <v-btn class="ma-2" text icon color="blue lighten-2" v-on:click="goUpLevel()">
+                <v-icon>mdi-arrow-up</v-icon>
+            </v-btn>
+            <v-divider inset vertical></v-divider>
+            <v-breadcrumbs :items="pathList"></v-breadcrumbs>
+        </v-toolbar>
+        <v-divider></v-divider>
         <v-data-table
                 :headers="tableHeader"
                 :items="tableData"
                 item-key="name"
                 hide-default-footer
-                class="elevation-1"
         >
             <template v-slot:item.name="{ item }">
-                <i class="icon icon-dir" v-if="item.type === 'dir'"></i>
-                <i class="el-icon-document" v-else></i>
-                <el-link :underline="false" v-on:click="itemAction(item)">
-                    <span style="margin-left: 10px">{{ item.name }}</span>
-                </el-link>
+                <svg class="type" aria-hidden="true">
+                    <use :xlink:href="'#type-'+getType(item.type)"></use>
+                </svg>
+                <a style="margin-left: 10px" v-on:click="itemAction(item)"> {{ item.name }}</a>
             </template>
         </v-data-table>
     </div>
@@ -141,7 +152,11 @@
                 ],
                 tableData: [],
                 pathList: [],
-                fileSelected: []
+                fileSelected: [],
+                typeMap: {
+                    'dir': 'dir',
+                    'mp3': 'mp3',
+                }
             }
         },
         created() {
@@ -191,10 +206,17 @@
             '$route': 'fetchData'
         },
         methods: {
-            backUpLevel() {
-                // router.back();
-                var url = this.$route.query.path.split('/').slice(0, -1).join('/');
-                if (url !== '') router.push({name: 'file', query: {path: url}});
+            getType(name) {
+                if (name in this.typeMap) {
+                    return this.typeMap[name]
+                } else return 'file'
+            },
+            goUpLevel() {
+                var pathList = this.$route.query.path.split('/');
+                if (pathList[1] !== '') {
+                    var newPath = pathList.slice(0, -1).join('/') || '/';
+                    router.push({name: 'file', query: {path: newPath}});
+                }
             },
             toggleSelection(rows) {
                 console.log(this.$refs.tableData);
@@ -234,22 +256,29 @@
                     switch (response.data.type) {
                         case 'dir':
                             this.tableData = response.data.items;
-                            const path_parts = path.split('/');
-                            if (path_parts.length !== 1)
+                            const pathParts = path.split('/');
+                            console.log(pathParts, pathParts.length);
+                            if (pathParts.length < 2 || pathParts[1] !== '')
                                 this.tableData.unshift({
                                     type: 'dir',
                                     name: '..',
-                                    path: path_parts.slice(0, -1).join('/'),
+                                    path: pathParts.slice(0, -1).join('/'),
                                     size: '-',
                                     time: '-'
                                 });
                             this.pathList = [];
-                            path_parts.forEach((item, index) => {
+                            pathParts.forEach((item, index) => {
                                 if (index === 0) item = 'Home';
                                 this.pathList.push({
                                     text: item,
                                     disabled: false,
-                                    href: path_parts.slice(0, index + 1).join('/')
+                                    exact: true,
+                                    to: {
+                                        name: 'file',
+                                        query: {
+                                            path: pathParts.slice(0, index + 1).join('/')
+                                        }
+                                    }
                                 })
                             });
                             break;
