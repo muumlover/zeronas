@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-
     <script src="/static/js/vue.min.js"></script>
     <script src="/static/js/vue-router.min.js"></script>
     <script src="/static/js/axios.min.js"></script>
-
     <script src="/static/js/iconfont.js"></script>
-
     <!--
     <script src="/static/js/element-ui.js"></script>
     -->
     <script src="/static/js/vuetify.js"></script>
-
     <!--
     <link href="/static/css/element-ui.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
@@ -212,9 +208,9 @@
                 } else return 'file'
             },
             goUpLevel() {
-                var pathList = this.$route.query.path.split('/');
-                if (pathList[1] !== '') {
-                    var newPath = pathList.slice(0, -1).join('/') || '/';
+                var pathParts = this.$route.query.path.split('/');
+                if (pathParts[1] !== '') {
+                    var newPath = pathParts.slice(0, -1).join('/') || '/';
                     router.push({name: 'file', query: {path: newPath}});
                 }
             },
@@ -268,7 +264,7 @@
                                     to: {
                                         name: 'file',
                                         query: {
-                                            path: pathParts.slice(0, index + 1).join('/')
+                                            path: pathParts.slice(0, index + 1).join('/') || '/'
                                         }
                                     }
                                 })
