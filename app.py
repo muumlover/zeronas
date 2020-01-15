@@ -21,7 +21,7 @@ from apis.users import handle_user
 
 app = Flask(__name__)
 app.add_url_rule('/api/file', 'api_file', handle_file)
-app.add_url_rule('/api/user', 'api_user', handle_user)
+app.add_url_rule('/api/user', 'api_user', handle_user, methods=['POST'])
 
 
 @app.errorhandler(404)

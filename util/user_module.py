@@ -16,10 +16,16 @@
 
 import os
 
+from util.file_size import approximate_size
+
 
 class User:
     def __init__(self):
         pass
+
+    @staticmethod
+    def path(username):
+        return '/sata/home/{username}'.format(username=username)
 
     @staticmethod
     def list():
@@ -28,6 +34,12 @@ class User:
     @staticmethod
     def exist(username):
         return 256 != os.system('cat /etc/passwd | cut -f1 -d":" | grep -w "{username}"'.format(username=username))
+
+    @staticmethod
+    def space(username):
+        user_path = User.path(username)
+        space_str = os.popen('mkdir -p {path};cd {path};du -s | cut -f1'.format(path=user_path)).read().strip()
+        return approximate_size(int(space_str))
 
     @staticmethod
     def add(username):

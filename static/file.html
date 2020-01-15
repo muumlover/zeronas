@@ -1,17 +1,59 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+
     <script src="/static/js/vue.min.js"></script>
     <script src="/static/js/vue-router.min.js"></script>
     <script src="/static/js/axios.min.js"></script>
+
+    <!--
     <script src="/static/js/element-ui.js"></script>
+    -->
+    <script src="/static/js/vuetify.js"></script>
+
+    <!--
     <link href="/static/css/element-ui.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    -->
+    <link href="/static/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="/static/css/vuetify.min.css" rel="stylesheet">
     <link href="/static/css/iconfont/iconfont.css" rel="stylesheet">
 </head>
 <body>
-<div id="app">
+<v-app id="app">
+    <!-- Sizes your content based upon application components -->
+    <v-content>
+
+        <v-toolbar color="teal" dark>
+            <v-toolbar-title>Title</v-toolbar-title>
+            <v-divider class="mx-4" inset vertical></v-divider>
+            <span class="subheading">My Home</span>
+            <v-spacer></v-spacer>
+            <v-toolbar-items class="hidden-sm-and-down">
+                <v-btn text> 文件管理</v-btn>
+                <v-divider inset vertical></v-divider>
+                <v-btn text> 用户设置</v-btn>
+                <v-divider inset vertical></v-divider>
+                <v-btn text> 个人设置</v-btn>
+                <v-divider inset vertical></v-divider>
+                <v-btn text> 系统设置</v-btn>
+                <v-divider inset vertical></v-divider>
+            </v-toolbar-items>
+            <v-app-bar-nav-icon></v-app-bar-nav-icon>
+        </v-toolbar>
+
+        <!-- Provides the application the proper gutter -->
+        <v-container fluid>
+
+            <!-- If using vue-router -->
+            <router-view></router-view>
+        </v-container>
+    </v-content>
+
+</v-app>
+<template id="app2">
     <el-container>
         <el-header>
             <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
@@ -29,33 +71,29 @@
 
         </el-footer>
     </el-container>
-</div>
+</template>
 <template id="fileView">
     <div>
-        <el-breadcrumb separator="/">
-            <el-breadcrumb-item v-for="item in pathList" :key="item.name"
-                                :to="{ name: 'file', query: {path: item.path}}">
-                {{ item.name }}
-            </el-breadcrumb-item>
-        </el-breadcrumb>
-        <el-table ref="fileList" :data="fileList" stripe style="width: 100%" @selection-change="handleSelectionChange">
-            <el-table-column type="selection" width="55"></el-table-column>
-            <el-table-column label="文件名">
-                <template slot-scope="scope">
-                    <i class="icon icon-dir" v-if="scope.row.type === 'dir'"></i>
-                    <i class="el-icon-document" v-else></i>
-                    <el-link :underline="false" v-on:click="itemAction(scope.row)">
-                        <span style="margin-left: 10px">{{ scope.row.name }}</span>
-                    </el-link>
-                </template>
-            </el-table-column>
-            <el-table-column prop="size" label="大小"></el-table-column>
-            <el-table-column prop="time" label="修改时间"></el-table-column>
-        </el-table>
+        <v-breadcrumbs :items="pathList"></v-breadcrumbs>
+        <v-data-table
+                :headers="tableHeader"
+                :items="tableData"
+                item-key="name"
+                hide-default-footer
+                class="elevation-1"
+        >
+            <template v-slot:item.name="{ item }">
+                <i class="icon icon-dir" v-if="item.type === 'dir'"></i>
+                <i class="el-icon-document" v-else></i>
+                <el-link :underline="false" v-on:click="itemAction(item)">
+                    <span style="margin-left: 10px">{{ item.name }}</span>
+                </el-link>
+            </template>
+        </v-data-table>
     </div>
 </template>
 <template id="userView">
-    <el-table ref="userList" :data="userList" stripe style="width: 100%">
+    <el-table id="userList" :data="userList" stripe style="width: 100%">
         <el-table-column type="selection" width="55"></el-table-column>
         <el-table-column label="用户名">
             <template slot-scope="scope">
@@ -71,25 +109,83 @@
     </el-table>
 </template>
 <template id="settingView">
-
 </template>
 <template id="systemView">
-
+    <div id="uploadFrame" ondragstart="return false">
+        <el-table id="tableData" :data="tableData" stripe style="width: 100%"
+                  @selection-change="handleSelectionChange">
+            <el-table-column type="selection" width="55"></el-table-column>
+            <el-table-column label="文件名">
+                <template slot-scope="scope">
+                    <i class="icon icon-dir" v-if="scope.row.type === 'dir'"></i>
+                    <i class="el-icon-document" v-else></i>
+                    <el-link :underline="false" v-on:click="itemAction(scope.row)">
+                        <span style="margin-left: 10px">{{ scope.row.name }}</span>
+                    </el-link>
+                </template>
+            </el-table-column>
+            <el-table-column prop="size" label="大小"></el-table-column>
+            <el-table-column prop="time" label="修改时间"></el-table-column>
+        </el-table>
+    </div>
 </template>
 <script>
     const FileView = {
         template: '#fileView',
         data() {
             return {
+                tableHeader: [
+                    {text: '文件名', value: 'name'},
+                    {text: '大小', value: 'size'},
+                    {text: '修改时间', value: 'time'},
+                ],
+                tableData: [],
                 pathList: [],
-                fileList: [],
                 fileSelected: []
             }
         },
         created() {
             // 组件创建完后获取数据，
             // 此时 data 已经被 observed 了
-            this.fetchData()
+            this.fetchData();
+        },
+        mounted() {
+            return;
+            var uploadFrame = document.getElementById('uploadFrame');
+            console.log(uploadFrame);
+            uploadFrame.ondragenter = (e) => {
+                e.preventDefault();  //阻止拖入时的浏览器默认行为
+                console.log('ondragenter');
+                uploadFrame.border = '2px dashed red';
+            };
+            uploadFrame.ondragover = (e) => {
+                e.preventDefault();    //阻止拖来拖去的浏览器默认行为
+                console.log('ondragover');
+            };
+            uploadFrame.ondragleave = (e) => {
+                e.preventDefault();  //阻止离开时的浏览器默认行为
+                console.log('ondragleave');
+            };
+            uploadFrame.ondrop = (e) => {
+                e.preventDefault();    //阻止拖放后的浏览器默认行为
+                console.log('ondrop');
+                const data = e.dataTransfer.files;  // 获取文件对象
+                if (data.length < 1) {
+                    return;  // 检测是否有文件拖拽到页面
+                }
+                console.log(e.dataTransfer.files);
+                const formData = new FormData();
+                for (let i = 0; i < e.dataTransfer.files.length; i++) {
+                    console.log(e.dataTransfer.files[i]);
+                    if (e.dataTransfer.files[i].name.indexOf('map') === -1) {
+                        alert('只允许上传.map文件');
+                        return;
+                    }
+                    formData.append('uploadfile', e.dataTransfer.files[i], e.dataTransfer.files[i].name);
+                }
+                this.tableData = this.tableData.concat(e.dataTransfer.files[0]);
+                console.log(formData, this.tableData, e.dataTransfer.files[0]);
+            };
         },
         watch: {
             '$route': 'fetchData'
@@ -101,14 +197,15 @@
                 if (url !== '') router.push({name: 'file', query: {path: url}});
             },
             toggleSelection(rows) {
+                console.log(this.$refs.tableData);
                 if (rows === 'all') {
-                    this.$refs.fileList.toggleAllSelection();
+                    this.$refs.tableData.toggleAllSelection();
                 } else if (rows) {
                     rows.forEach(row => {
-                        this.$refs.fileList.toggleRowSelection(row);
+                        this.$refs.tableData.toggleRowSelection(row);
                     });
                 } else {
-                    this.$refs.fileList.clearSelection();
+                    this.$refs.tableData.clearSelection();
                 }
             },
             handleSelectionChange(val) {
@@ -126,19 +223,20 @@
                         break;
                 }
             },
-            fetchData: function () {
-                console.log(this.$route.query.path);
+            fetchData() {
+                var path = this.$route.query.path || '/';
+                console.log(path);
                 axios.get('/api/file', {
                     params: {
-                        path: this.$route.query.path
+                        path
                     }
                 }).then((response) => {
                     switch (response.data.type) {
                         case 'dir':
-                            this.fileList = response.data.items;
-                            const path_parts = this.$route.query.path.split('/');
+                            this.tableData = response.data.items;
+                            const path_parts = path.split('/');
                             if (path_parts.length !== 1)
-                                this.fileList.unshift({
+                                this.tableData.unshift({
                                     type: 'dir',
                                     name: '..',
                                     path: path_parts.slice(0, -1).join('/'),
@@ -149,8 +247,9 @@
                             path_parts.forEach((item, index) => {
                                 if (index === 0) item = 'Home';
                                 this.pathList.push({
-                                    name: item,
-                                    path: path_parts.slice(0, index + 1).join('/')
+                                    text: item,
+                                    disabled: false,
+                                    href: path_parts.slice(0, index + 1).join('/')
                                 })
                             });
                             break;
@@ -180,9 +279,21 @@
         },
         methods: {
             fetchData: function () {
-                axios.get('/api/user').then((response) => {
+                axios.post('/api/user', {
+                    action: 'list'
+                }).then((response) => {
                     console.log(response);
-                    this.userList = response.data.items;
+                    response.data.body.map((item, index) => {
+                        this.userList.push({
+                            name: item
+                        });
+                        axios.post('/api/user', {
+                            action: 'space',
+                            username: item
+                        }).then((response_space) => {
+                            this.$set(this.userList, index, response_space.data.body)
+                        })
+                    });
                 });
             }
         }
@@ -216,6 +327,7 @@
     });
     var app = new Vue({
         el: '#app',
+        vuetify: new Vuetify(),
         router,
         data() {
             return {
