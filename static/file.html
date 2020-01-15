@@ -258,14 +258,6 @@
                             this.tableData = response.data.items;
                             const pathParts = path.split('/');
                             console.log(pathParts, pathParts.length);
-                            if (pathParts.length < 2 || pathParts[1] !== '')
-                                this.tableData.unshift({
-                                    type: 'dir',
-                                    name: '..',
-                                    path: pathParts.slice(0, -1).join('/'),
-                                    size: '-',
-                                    time: '-'
-                                });
                             this.pathList = [];
                             pathParts.forEach((item, index) => {
                                 if (index === 0) item = 'Home';
