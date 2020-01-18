@@ -2,7 +2,7 @@
 <html lang="en" xmlns:v-slot="http://www.w3.org/1999/XSL/Transform" xmlns:v-on="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>ZeroNas</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
     <script src="/static/js/vue.min.js"></script>
     <script src="/static/js/vue-router.min.js"></script>
@@ -30,25 +30,25 @@
 </head>
 <body>
 <v-app id="app">
+    <v-app-bar app color="teal" dark>
+        <v-toolbar-title>ZeroNas</v-toolbar-title>
+        <v-divider class="mx-4" inset vertical></v-divider>
+        <span class="subheading">Hello Guys.</span>
+        <v-spacer></v-spacer>
+        <v-toolbar-items class="hidden-sm-and-down">
+            <v-btn text :to="{name:'file',query:{path:'/'}}"> 文件管理</v-btn>
+            <v-divider inset vertical></v-divider>
+            <v-btn text :to="{name:'user'}"> 用户设置</v-btn>
+            <v-divider inset vertical></v-divider>
+            <v-btn text :to="{name:'setting'}"> 个人设置</v-btn>
+            <v-divider inset vertical></v-divider>
+            <v-btn text :to="{name:'system'}"> 系统设置</v-btn>
+            <v-divider inset vertical></v-divider>
+        </v-toolbar-items>
+        <v-app-bar-nav-icon></v-app-bar-nav-icon>
+    </v-app-bar>
     <!-- Sizes your content based upon application components -->
     <v-content>
-        <v-toolbar color="teal" dark>
-            <v-toolbar-title>Title</v-toolbar-title>
-            <v-divider class="mx-4" inset vertical></v-divider>
-            <span class="subheading">My Home</span>
-            <v-spacer></v-spacer>
-            <v-toolbar-items class="hidden-sm-and-down">
-                <v-btn text :to="{name:'file',query:{path:'/'}}"> 文件管理</v-btn>
-                <v-divider inset vertical></v-divider>
-                <v-btn text :to="{name:'user'}"> 用户设置</v-btn>
-                <v-divider inset vertical></v-divider>
-                <v-btn text :to="{name:'setting'}"> 个人设置</v-btn>
-                <v-divider inset vertical></v-divider>
-                <v-btn text :to="{name:'system'}"> 系统设置</v-btn>
-                <v-divider inset vertical></v-divider>
-            </v-toolbar-items>
-            <v-app-bar-nav-icon></v-app-bar-nav-icon>
-        </v-toolbar>
         <!-- Provides the application the proper gutter -->
         <v-container fluid>
             <!-- If using vue-router -->
@@ -57,7 +57,7 @@
     </v-content>
 </v-app>
 <template id="fileView">
-    <div class="elevation-3">
+    <div class="elevation-3" ondragstart="return false">
         <v-toolbar dense flat color="grey lighten-5">
             <v-btn class="ma-2" text icon color="blue lighten-2" v-on:click="goUpLevel()">
                 <v-icon>mdi-arrow-up</v-icon>
@@ -67,6 +67,7 @@
         </v-toolbar>
         <v-divider></v-divider>
         <v-data-table
+                id="fileTable"
                 :headers="tableHeader"
                 :items="tableData"
                 item-key="name"
@@ -79,6 +80,11 @@
                 <a style="margin-left: 10px" v-on:click="itemAction(item)"> {{ item.name }}</a>
             </template>
         </v-data-table>
+        <v-overlay id="uploadFrame" :value="overlay">
+            <v-btn icon @click="overlay = false">
+                <v-icon>mdi-close</v-icon>
+            </v-btn>
+        </v-overlay>
     </div>
 </template>
 <template id="userView">
@@ -95,29 +101,13 @@
 <template id="settingView">
 </template>
 <template id="systemView">
-    <div id="uploadFrame" ondragstart="return false">
-        <el-table id="tableData" :data="tableData" stripe style="width: 100%"
-                  @selection-change="handleSelectionChange">
-            <el-table-column type="selection" width="55"></el-table-column>
-            <el-table-column label="文件名">
-                <template slot-scope="scope">
-                    <i class="icon icon-dir" v-if="scope.row.type === 'dir'"></i>
-                    <i class="el-icon-document" v-else></i>
-                    <el-link :underline="false" v-on:click="itemAction(scope.row)">
-                        <span style="margin-left: 10px">{{ scope.row.name }}</span>
-                    </el-link>
-                </template>
-            </el-table-column>
-            <el-table-column prop="size" label="大小"></el-table-column>
-            <el-table-column prop="time" label="修改时间"></el-table-column>
-        </el-table>
-    </div>
 </template>
 <script>
     const FileView = {
         template: '#fileView',
         data() {
             return {
+                overlay: false,
                 tableHeader: [
                     {text: '文件名', value: 'name'},
                     {text: '大小', value: 'size'},
@@ -127,47 +117,49 @@
                 pathList: [],
                 fileSelected: [],
                 typeMap: {
-                    'dir': 'dir',
-                    'file': 'file',
-                    'doc': 'doc',
-                    'docx': 'doc',
-                    'xls': 'xls',
-                    'xlsx': 'xls',
-                    'ppt': 'ppt',
-                    'pptx': 'ppt',
-                    'pdf': 'pdf',
-                    'jpg': 'jpg',
-                    'jpeg': 'jpeg',
-                    'png': 'png',
-                    'psd': 'psd',
-                    'svg': 'svg',
-                    'mp3': 'mp3',
-                    'mp4': 'mp4',
-                    'avi': 'avi',
-                    'fla': 'fla',
-                    'tar': 'tar',
-                    'biz': 'tar',
-                    'gz': 'tar',
-                    'xz': 'tar',
-                    '7z': 'tar',
-                    'rar': 'tar',
-                    'zip': 'zip',
-                    'txt': 'txt',
-                    'csv': 'csv',
-                    'json': 'json',
-                    'xml': 'xml',
-                    'htm': 'html',
-                    'html': 'html',
-                    'js': 'js',
-                    'css': 'css',
-                    'ai': 'ai',
-                    'cmd': 'exe',
-                    'exe': 'exe',
-                    'rtf': 'rtf',
-                    'dwg': 'dwg',
-                    'dbf': 'dbf',
-                    'iso': 'iso',
-                    '??': 'search',
+                    '': 'file',
+                    '.dir': 'dir',
+                    '.doc': 'doc',
+                    '.docx': 'doc',
+                    '.xls': 'xls',
+                    '.xlsx': 'xls',
+                    '.ppt': 'ppt',
+                    '.pptx': 'ppt',
+                    '.pdf': 'pdf',
+                    '.jpg': 'jpg',
+                    '.jpeg': 'jpeg',
+                    '.png': 'png',
+                    '.psd': 'psd',
+                    '.svg': 'svg',
+                    '.mp3': 'mp3',
+                    '.mp4': 'mp4',
+                    '.avi': 'avi',
+                    '.fla': 'fla',
+                    '.tar': 'tar',
+                    '.biz': 'tar',
+                    '.gz': 'tar',
+                    '.xz': 'tar',
+                    '.7z': 'tar',
+                    '.rar': 'tar',
+                    '.zip': 'zip',
+                    '.txt': 'txt',
+                    '.csv': 'csv',
+                    '.json': 'json',
+                    '.xml': 'xml',
+                    '.htm': 'html',
+                    '.html': 'html',
+                    '.js': 'js',
+                    '.css': 'css',
+                    '.ai': 'ai',
+                    '.bat': 'exe',
+                    '.cmd': 'exe',
+                    '.dll': 'exe',
+                    '.exe': 'exe',
+                    '.rtf': 'rtf',
+                    '.dwg': 'dwg',
+                    '.dbf': 'dbf',
+                    '.iso': 'iso',
+                    '.*': 'search',
                 }
             }
         },
@@ -177,13 +169,14 @@
             this.fetchData();
         },
         mounted() {
-            return;
+            var fileTable = document.getElementById('fileTable');
             var uploadFrame = document.getElementById('uploadFrame');
             console.log(uploadFrame);
-            uploadFrame.ondragenter = (e) => {
+            fileTable.ondragenter = (e) => {
                 e.preventDefault();  //阻止拖入时的浏览器默认行为
                 console.log('ondragenter');
                 uploadFrame.border = '2px dashed red';
+                this.overlay = true;
             };
             uploadFrame.ondragover = (e) => {
                 e.preventDefault();    //阻止拖来拖去的浏览器默认行为
@@ -192,6 +185,7 @@
             uploadFrame.ondragleave = (e) => {
                 e.preventDefault();  //阻止离开时的浏览器默认行为
                 console.log('ondragleave');
+                this.overlay = false;
             };
             uploadFrame.ondrop = (e) => {
                 e.preventDefault();    //阻止拖放后的浏览器默认行为
@@ -247,13 +241,12 @@
             },
             itemAction(item) {
                 switch (item.type) {
-                    case 'dir':
+                    case '.dir':
                         router.push({name: 'file', query: {path: item.path}});
                         break;
-                    case 'file':
+                    default:
                         var file_url = "/api/file?path=" + item.path;
                         window.open(file_url, 'download');
-                    default:
                         break;
                 }
             },
@@ -266,7 +259,7 @@
                     }
                 }).then((response) => {
                     switch (response.data.type) {
-                        case 'dir':
+                        case '.dir':
                             this.tableData = response.data.items;
                             const pathParts = path.split('/');
                             console.log(pathParts, pathParts.length);

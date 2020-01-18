@@ -21,6 +21,12 @@ from flask import jsonify, request, make_response, send_from_directory
 from util.file_size import approximate_size
 
 
+def get_ext(file_path):
+    if not os.path.isfile(file_path):
+        return '.dir'
+    return os.path.splitext(file_path)[-1]
+
+
 def get_size(file_path):
     if not os.path.isfile(file_path):
         return '-'
@@ -38,7 +44,7 @@ def get_files(base_path, target_path):
     for file_name in os.listdir(target_path):
         file_path = os.path.join(target_path, file_name)
         file_list.append({
-            'type': 'file' if os.path.isfile(file_path) else 'dir',
+            'type': get_ext(file_path),
             'name': file_name,
             'path': '/' + os.path.relpath(file_path, base_path),
             'size': get_size(file_path),
@@ -54,7 +60,7 @@ def handle_file():
 
     target_path = base_path + path
     if os.path.isdir(target_path):
-        return jsonify({'code': 0, 'message': '', 'type': 'dir', 'items': get_files(base_path, target_path)})
+        return jsonify({'code': 0, 'message': '', 'type': '.dir', 'items': get_files(base_path, target_path)})
     else:
         try:
             response = make_response(send_from_directory(*os.path.split(target_path), as_attachment=True))
