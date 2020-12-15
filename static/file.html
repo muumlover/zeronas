@@ -173,23 +173,26 @@
             var uploadFrame = document.getElementById('uploadFrame');
             console.log(uploadFrame);
             fileTable.ondragenter = (e) => {
+                e.stopPropagation();
                 e.preventDefault();  //阻止拖入时的浏览器默认行为
                 console.log('ondragenter');
-                uploadFrame.border = '2px dashed red';
                 this.overlay = true;
             };
             uploadFrame.ondragover = (e) => {
+                e.stopPropagation();
                 e.preventDefault();    //阻止拖来拖去的浏览器默认行为
-                console.log('ondragover');
             };
             uploadFrame.ondragleave = (e) => {
+                e.stopPropagation();
                 e.preventDefault();  //阻止离开时的浏览器默认行为
                 console.log('ondragleave');
                 this.overlay = false;
             };
             uploadFrame.ondrop = (e) => {
+                e.stopPropagation();
                 e.preventDefault();    //阻止拖放后的浏览器默认行为
                 console.log('ondrop');
+                this.overlay = false;
                 const data = e.dataTransfer.files;  // 获取文件对象
                 if (data.length < 1) {
                     return;  // 检测是否有文件拖拽到页面
@@ -198,10 +201,6 @@
                 const formData = new FormData();
                 for (let i = 0; i < e.dataTransfer.files.length; i++) {
                     console.log(e.dataTransfer.files[i]);
-                    if (e.dataTransfer.files[i].name.indexOf('map') === -1) {
-                        alert('只允许上传.map文件');
-                        return;
-                    }
                     formData.append('uploadfile', e.dataTransfer.files[i], e.dataTransfer.files[i].name);
                 }
                 this.tableData = this.tableData.concat(e.dataTransfer.files[0]);
